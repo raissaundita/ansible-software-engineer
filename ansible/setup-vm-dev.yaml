@@ -16,7 +16,7 @@
 
   tasks:
 
-      - name: Validasi semua input wajib sebelum automation dijalankan
+    - name: Validasi semua input wajib sebelum automation dijalankan
       ansible.builtin.assert:
         that:
           - git_repo_url is defined and git_repo_url | length > 0
