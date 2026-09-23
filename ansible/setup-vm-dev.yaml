@@ -16,6 +16,18 @@
 
   tasks:
 
+      - name: Validasi semua input wajib sebelum automation dijalankan
+      ansible.builtin.assert:
+        that:
+          - git_repo_url is defined and git_repo_url | length > 0
+          - podman_registry_url is defined and podman_registry_url | length > 0
+          - podman_registry_username is defined and podman_registry_username | length > 0
+          - podman_registry_password is defined and podman_registry_password | length > 0
+          - oc_api_url is defined and oc_api_url | length > 0
+          - oc_token is defined and oc_token | length > 0
+        fail_msg: "Input tidak valid! Pastikan Extra Variables sudah diisi dengan benar."
+        success_msg: "Semua input valid, automation dilanjutkan."
+
     # --- Install ---
     - name: Install git, podman and python3
       ansible.builtin.dnf:
