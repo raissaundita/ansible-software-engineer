@@ -14,8 +14,14 @@
     oc_token: ""
     oc_cli_download_url: "https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/openshift-client-linux.tar.gz"
 
+    # TASK 3: versi exact git, podman, python3 
+    git_version: "2.55.0-1.fc44"
+    podman_version: "5:5.8.1-1.fc44"
+    python3_version: "3.14.3-2.fc44"
+
   tasks:
 
+    # TASK 2 (Pre-validation)
     - name: Validasi git_repo_url harus diawali https://
       ansible.builtin.assert:
         that:
@@ -63,10 +69,14 @@
         success_msg: "oc_token valid."
 
     # --- Install ---
-    - name: Install git, podman and python3
+    - name: Install git, podman and python3 (exact version)
       ansible.builtin.dnf:
-        name: [git, podman, python3]
+        name:
+          - "git-{{ git_version }}"
+          - "podman-{{ podman_version }}"
+          - "python3-{{ python3_version }}"
         state: present
+        allow_downgrade: true   # supaya versi tetap dipasang exact walau ada versi lebih baru/lama di repo
       become: true
 
     - name: Download oc CLI
