@@ -290,9 +290,17 @@ async def summary_by_method(year: int, month: int):
 async def summary_behavior(
     year: int,
     month: int,
-    batas_reckless: int = 3000000,  # kalau total belanja bulan itu >= angka ini -> Reckless Spender
-    batas_saver: int = 2000000      # kalau sisa uang (nett) bulan itu >= angka ini -> Big Saver
+    # Default 0.2 artinya: kalau user berhasil menabung >= 20% dari
+    # incomenya bulan itu, dia dianggap "Big Saver".
+    ambang_big_saver: float = 0.2
 ):
+    # --- validasi kecil biar ambang_big_saver tidak aneh (misal negatif) ---
+    if not (0 <= ambang_big_saver <= 1):
+        raise HTTPException(
+            status_code=422,
+            detail="ambang_big_saver harus berupa persen antara 0 dan 1 (misal 0.2 untuk 20%)"
+        )
+ 
     start = datetime(year, month, 1)
     if month == 12:
         end = datetime(year + 1, 1, 1)
@@ -318,15 +326,32 @@ async def summary_behavior(
  
     nett = total_income - total_purchase
  
-    # Bandingkan NOMINAL langsung (bukan rasio) ke batas yang di-set user.
-    # Dicek reckless dulu -- kalau belanjanya sudah kelewat banyak,
-    # tidak usah dicek lagi apakah nett-nya masih di atas batas saver.
-    if total_purchase >= batas_reckless:
-        label = "Reckless Spender"
-    elif nett >= batas_saver:
-        label = "Big Saver"
+    # Kalau income = 0 (belum ada pemasukan bulan itu), rasio tidak bisa
+    # dihitung (pembagian dengan nol). Kita anggap kondisi ini otomatis
+    # "Reckless Spender" kalau ada purchase, atau netral kalau semua kosong.
+    if total_income == 0:
+        if total_purchase > 0:
+            label = "Reckless Spender"
+        else:
+            label = "Belum Ada Transaksi"
+        savings_rate = None
     else:
-        label = "Indikasi Big Spender"
+        # savings_rate = seberapa besar persen income yang "tersisa" (ditabung)
+        # Contoh: income 10jt, purchase 12jt -> nett = -2jt
+        # savings_rate = -2jt / 10jt = -0.2 -> artinya minus 20% (boros)
+        savings_rate = nett / total_income
+ 
+        if savings_rate < 0:
+            # Pengeluaran LEBIH BESAR dari pemasukan -> jelas boros
+            label = "Reckless Spender"
+        elif savings_rate >= ambang_big_saver:
+            # Berhasil menyisihkan >= ambang_big_saver (default 20%)
+            # dari pemasukannya sendiri -> dianggap rajin menabung
+            label = "Big Saver"
+        else:
+            # Di antara 0% - ambang_big_saver -> tidak boros, tapi
+            # tabungannya belum banyak juga
+            label = "Cukup Terkendali"
  
     return {
         "year": year,
@@ -334,8 +359,11 @@ async def summary_behavior(
         "total_income": total_income,
         "total_purchase": total_purchase,
         "nett": nett,
-        "batas_reckless_dipakai": batas_reckless,
-        "batas_saver_dipakai": batas_saver,
+        # savings_rate dikirim juga ke user dalam bentuk persen biar
+        # user tahu "kenapa" dia dapat label itu, bukan cuma dikasih
+        # labelnya doang tanpa konteks
+        "savings_rate_persen": round(savings_rate * 100, 1) if savings_rate is not None else None,
+        "ambang_big_saver_dipakai_persen": round(ambang_big_saver * 100, 1),
         "behavior_label": label
     }
 
