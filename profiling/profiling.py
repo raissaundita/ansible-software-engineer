@@ -1,31 +1,21 @@
 """
-profilling.py
---------------
 Modul ini berisi logic untuk REQ FERDI:
 1. Profile check -> ngecek pengeluaran bulan ini dibanding rata-rata historis
 2. Sistem alert -> kasih status + pesan sesuai persentase dari baseline
-3. Insight tambahan (biar user dapat gambaran lebih lengkap, tapi TETAP
-   ringkas -- gak semua angka pendukung ditampilin, cuma yang relevan
-   buat user):
-   - tanggal transaksi terakhir yang tercatat bulan ini (biar tau data
-     "berhenti" di tanggal berapa)
+3. Insight tambahan
+   - tanggal transaksi terakhir yang tercatat bulan ini (biar tau data "berhenti" di tanggal berapa)
    - rata-rata pengeluaran per hari bulan ini
    - perbandingan langsung ke bulan lalu (bulan n-1 aja, bukan rata-rata)
    - 3 transaksi terbesar bulan ini
 
-   Catatan: rincian pengeluaran per bulan yang dipakai buat hitung baseline
-   (x) SENGAJA TIDAK ditampilkan ke user -- itu cuma "bukti pendukung" di
-   balik layar, bukan info yang perlu dilihat user tiap cek alert. Yang
-   ditampilkan cukup HASIL akhirnya (angka x-nya saja).
-
-Konsep utama (sesuai keputusan sebelumnya):
+Konsep utama:
     x = rata-rata TOTAL pengeluaran dari bulan ke-1 sampai bulan ke-(n-1)
     y = total pengeluaran di bulan ke-n (bulan yang sedang berjalan, SEJAUH INI)
     persen = (y / x) * 100
     x >= y (persen <= 100%) -> AMAN | x < y (persen > 100%) -> WARNING
 
 Modul ini TIDAK import Transaction dari main.py secara langsung (biar
-gak circular import). Sebagai gantinya, fungsi-fungsi di sini menerima
+tidak circular import). Sebagai gantinya, fungsi-fungsi di sini menerima
 "transaction_model" sebagai parameter -- yaitu class Transaction (Beanie
 Document) yang dikirim dari main.py saat fungsi dipanggil.
 """
@@ -58,9 +48,7 @@ def awal_bulan_sebelumnya(awal_bulan_ini: datetime) -> datetime:
 
 
 # ------------------------------------------------------------------
-# Baseline (x) -- HASIL AKHIR SAJA, rincian per bulan gak diikutkan
-# ------------------------------------------------------------------
-
+# Baseline (x)
 async def hitung_baseline_x(transaction_model, awal_bulan_ini: datetime):
     """
     Hitung x = rata-rata total pengeluaran ("purchase") dari SEMUA bulan
@@ -92,8 +80,6 @@ async def hitung_baseline_x(transaction_model, awal_bulan_ini: datetime):
 
 # ------------------------------------------------------------------
 # Insight pengeluaran bulan ini (y) yang lebih detail
-# ------------------------------------------------------------------
-
 async def hitung_detail_pengeluaran_bulan_ini(transaction_model, awal_bulan_ini: datetime, awal_bulan_depan: datetime):
     """
     Hitung y (total pengeluaran bulan ini) SEKALIGUS ambil tanggal
@@ -136,8 +122,6 @@ async def hitung_detail_pengeluaran_bulan_ini(transaction_model, awal_bulan_ini:
     total_bulan = hasil[0]["total_bulan"]
     tanggal_terakhir = hasil[0]["tanggal_terakhir"]
 
-    # jumlah hari yang "berjalan" = tanggal (day) dari transaksi terakhir,
-    # bukan tanggal hari ini -- lihat alasan di docstring
     jumlah_hari_berjalan = tanggal_terakhir.day
     rata_rata_per_hari = total_bulan / jumlah_hari_berjalan
 
@@ -153,8 +137,7 @@ async def hitung_pengeluaran_bulan_lalu(transaction_model, awal_bulan_ini: datet
     Hitung total pengeluaran di TEPAT 1 bulan sebelumnya (bulan n-1 aja,
     BUKAN rata-rata semua histori seperti baseline x).
     Ini buat perbandingan yang lebih "kebayang" -- orang biasanya lebih
-    gampang ngerti "naik/turun dari bulan lalu" dibanding "dibanding
-    rata-rata sekian bulan".
+    gampang ngerti "naik/turun dari bulan lalu" dibanding rata-rata sekian bulan".
 
     Return int, atau None kalau bulan lalu belum ada data.
     """
@@ -192,8 +175,6 @@ async def ambil_top_transaksi_terbesar(transaction_model, awal_bulan_ini: dateti
 
 # ------------------------------------------------------------------
 # Status alert
-# ------------------------------------------------------------------
-
 def tentukan_status_alert(x, y: int) -> dict:
     """
     Bandingkan y terhadap x, lalu tentukan status + pesan.
@@ -219,26 +200,26 @@ def tentukan_status_alert(x, y: int) -> dict:
     if persen < 50:
         status = "aman"
         pilihan_pesan = [
-            "Pengeluaran bulan ini masih {p}% dari rata-rata biasanya. Aman terkendali!",
-            "Santai, kamu masih jauh di bawah rata-rata pengeluaran bulananmu ({p}%). Lanjutkan!",
+            "Pengeluaran bulan ini masih {p}% dari rata-rata biasanya. Aman terkendali boz!",
+            "Santai, kamu masih jauh di bawah rata-rata pengeluaran bulananmu ({p}%). Aman ajaa!",
         ]
     elif persen < 80:
         status = "waspada_ringan"
         pilihan_pesan = [
             "Udah {p}% dari rata-rata bulananmu. Masih oke, tapi mulai diperhatiin ya!",
-            "Pengeluaran bulan ini {p}% dari biasanya -- masih wajar, tetap dipantau ya!",
+            "Pengeluaran bulan ini {p}% dari biasanya -- masih wajar si, tapi tetap dipantau ya!",
         ]
     elif persen < 100:
         status = "waspada"
         pilihan_pesan = [
-            "Hati-hati, udah {p}% dari rata-rata pengeluaran bulananmu. Yuk direm dikit!",
+            "Hati-hati, udah {p}% dari rata-rata pengeluaran bulananmu. Yuk direm dikit yuk!",
             "Pengeluaran udah mendekati batas biasanya ({p}%). Semangat lebih hemat di sisa bulan ini!",
         ]
     else:
         status = "lewat_batas"
         pilihan_pesan = [
-            "Pengeluaran bulan ini udah lewat rata-rata biasanya ({p}%)! Yuk evaluasi, bulan depan pasti lebih baik.",
-            "Waduh, {p}% dari rata-rata bulanan udah terlampaui. Gak apa-apa, ini jadi bahan belajar buat bulan depan!",
+            "Pengeluaran bulan ini udah lewat rata-rata biasanya ({p}%)! Gapapa namanya juga hidup, bulan depan pasti lebih baik!",
+            "Waduh, {p}% dari rata-rata bulanan udah terlampaui. Gapapa, ini jadi bahan belajar buat bulan depan!",
         ]
 
     pesan_terpilih = random.choice(pilihan_pesan).format(p=round(persen, 1))
@@ -252,8 +233,6 @@ def tentukan_status_alert(x, y: int) -> dict:
 
 # ------------------------------------------------------------------
 # Fungsi UTAMA -- gabungin semuanya jadi 1 response yang ringkas
-# ------------------------------------------------------------------
-
 async def cek_profile_dan_alert(transaction_model, tanggal_acuan: datetime) -> dict:
     """
     Fungsi UTAMA yang dipanggil dari main.py.
@@ -290,8 +269,6 @@ async def cek_profile_dan_alert(transaction_model, tanggal_acuan: datetime) -> d
     hasil_alert = tentukan_status_alert(x, y)
 
     # --- gabungin jadi 1 response yang ringkas ---
-    # (rincian per bulan yang dipakai buat hitung x SENGAJA gak diikutkan
-    # di sini -- cukup angka hasil akhirnya, biar gak bikin user bingung)
     hasil_alert["baseline_x_rata_rata_bulan_sebelumnya"] = round(x) if x is not None else None
     hasil_alert["pengeluaran_bulan_ini_y"] = y
 
