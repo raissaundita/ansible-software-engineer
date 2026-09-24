@@ -2,13 +2,50 @@ kind: Service
 apiVersion: v1
 metadata:
   name: my-container
+  namespace: raissaundita24-dev
+  uid: fa3dce7c-f8aa-4037-8a30-6c1935edbdd6
+  resourceVersion: '6934535656'
+  creationTimestamp: '2026-09-22T04:10:36Z'
   labels:
     app: my-container
+  managedFields:
+    - manager: Mozilla
+      operation: Update
+      apiVersion: v1
+      time: '2026-09-22T04:10:36Z'
+      fieldsType: FieldsV1
+      fieldsV1:
+        'f:metadata':
+          'f:labels':
+            .: {}
+            'f:app': {}
+        'f:spec':
+          'f:internalTrafficPolicy': {}
+          'f:ports':
+            .: {}
+            'k:{"port":8000,"protocol":"TCP"}':
+              .: {}
+              'f:port': {}
+              'f:protocol': {}
+              'f:targetPort': {}
+          'f:selector': {}
+          'f:sessionAffinity': {}
+          'f:type': {}
 spec:
+  clusterIP: 172.30.140.206
+  ipFamilies:
+    - IPv4
   ports:
     - protocol: TCP
       port: 8000
       targetPort: 8000
+  internalTrafficPolicy: Cluster
+  clusterIPs:
+    - 172.30.140.206
+  type: ClusterIP
+  ipFamilyPolicy: SingleStack
+  sessionAffinity: None
   selector:
-    app: my-container
-    
+    bootcamp: its-mlpt
+status:
+  loadBalancer: {}
