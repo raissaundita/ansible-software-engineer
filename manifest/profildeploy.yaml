@@ -1,0 +1,45 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: profiling-container          # nama deployment baru (bukan my-container)
+  namespace: raissaundita24-dev
+  labels:
+    app: profiling-container
+spec:
+  replicas: 1                        # 1 saja cukup untuk challenge
+  selector:
+    matchLabels:
+      bootcamp: its-profiling        # label BEDA dari transaction (its-mlpt)
+  template:
+    metadata:
+      labels:
+        bootcamp: its-profiling      # harus sama dengan matchLabels di atas
+    spec:
+      containers:
+        - name: profiling-container
+          image: 'default-route-openshift-image-registry.apps.rm1.0a51.p1.openshiftapps.com/raissaundita24-dev/profiling:v.1'
+          ports:
+            - containerPort: 8001    # port profiling
+              protocol: TCP
+          env:                       # sama seperti transaction, memakai Secret dan ConfigMap yang sudah ada
+            - name: MONGO_USER
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-secret
+                  key: MONGO_USER
+            - name: MONGO_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-secret
+                  key: MONGO_PASSWORD
+            - name: MONGO_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-secret
+                  key: MONGO_HOST
+            - name: MONGO_DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: mongo-configmaps
+                  key: MONGO_DB_NAME
+          imagePullPolicy: Always

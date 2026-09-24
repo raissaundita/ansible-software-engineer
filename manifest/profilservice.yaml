@@ -1,0 +1,15 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: profiling-container            # nama ini dipakai oleh Route
+  namespace: raissaundita24-dev
+  labels:
+    app: profiling-container
+spec:
+  type: ClusterIP
+  ports:
+    - protocol: TCP
+      port: 8001
+      targetPort: 8001
+  selector:
+    bootcamp: its-profiling          # harus sama dengan label pod di Deployment
