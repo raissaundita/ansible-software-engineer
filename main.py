@@ -13,6 +13,9 @@ import io
 import os
 import re
 
+# --- MODUL BARU: logic profile check & sistem alert (REQ FERDI) ---
+from profilling import cek_profile_dan_alert
+
 
 app = FastAPI()
 load_dotenv()
@@ -224,8 +227,27 @@ async def add_transaction(request_body: RequestNewTransaction):
         trx_type=request_body.trx_type
     )
     await trx.insert()
-    return trx
- 
+
+    # --- PROFILE CHECK (REQ FERDI) ---
+    # Cuma relevan kalau transaksi ini "purchase" (uang keluar).
+    # Kalau "income", gak perlu dicek karena gak mempengaruhi pengeluaran.
+    profile_check = None
+    if trx.trx_type == TrxType.purchase.value:
+        profile_check = await cek_profile_dan_alert(Transaction, trx.date)
+
+    return {
+        "transaksi": trx,
+        "profile_check": profile_check
+    }
+
+
+# --- ENDPOINT BARU (REQ FERDI): cek status alert kapan aja, on-demand ---
+# Gak perlu nunggu ada transaksi baru -- Ferdi bisa buka ini kapan pun
+# buat lihat "posisi" pengeluarannya saat ini dibanding rata-rata bulanan.
+@app.get("/transaction/alert")
+async def cek_alert_sekarang():
+    return await cek_profile_dan_alert(Transaction, datetime.now())
+
  
 @app.get("/transaction")
 async def get_transaction(start_date: datetime, end_date: datetime):
@@ -444,4 +466,3 @@ async def import_dari_excel(file: UploadFile = File(...)):
         "berhasil_diimport": len(berhasil),
         "gagal_diimport": gagal
     }
- 
