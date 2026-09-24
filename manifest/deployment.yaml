@@ -1,23 +1,201 @@
 kind: Deployment
 apiVersion: apps/v1
 metadata:
+  annotations:
+    deployment.kubernetes.io/revision: '5'
+  resourceVersion: '6945073749'
   name: my-container
+  uid: c99d855c-d390-44a6-9a95-ce2ee95378d2
+  creationTimestamp: '2026-09-22T04:21:41Z'
+  generation: 20
+  managedFields:
+    - manager: Mozilla
+      operation: Update
+      apiVersion: apps/v1
+      fieldsType: FieldsV1
+      fieldsV1:
+        'f:spec':
+          'f:replicas': {}
+      subresource: scale
+    - manager: Mozilla
+      operation: Update
+      apiVersion: apps/v1
+      time: '2026-09-22T08:48:32Z'
+      fieldsType: FieldsV1
+      fieldsV1:
+        'f:metadata':
+          'f:labels':
+            .: {}
+            'f:app': {}
+        'f:spec':
+          'f:progressDeadlineSeconds': {}
+          'f:revisionHistoryLimit': {}
+          'f:selector': {}
+          'f:strategy':
+            'f:rollingUpdate':
+              .: {}
+              'f:maxSurge': {}
+              'f:maxUnavailable': {}
+            'f:type': {}
+          'f:template':
+            'f:metadata':
+              'f:labels':
+                .: {}
+                'f:bootcamp': {}
+            'f:spec':
+              'f:containers':
+                'k:{"name":"my-container"}':
+                  'f:image': {}
+                  'f:terminationMessagePolicy': {}
+                  .: {}
+                  'f:resources': {}
+                  'f:env':
+                    .: {}
+                    'k:{"name":"MONGO_DB_NAME"}':
+                      .: {}
+                      'f:name': {}
+                      'f:valueFrom':
+                        .: {}
+                        'f:configMapKeyRef': {}
+                    'k:{"name":"MONGO_HOST"}':
+                      .: {}
+                      'f:name': {}
+                      'f:valueFrom':
+                        .: {}
+                        'f:secretKeyRef': {}
+                    'k:{"name":"MONGO_PASSWORD"}':
+                      .: {}
+                      'f:name': {}
+                      'f:valueFrom':
+                        .: {}
+                        'f:secretKeyRef': {}
+                    'k:{"name":"MONGO_USER"}':
+                      .: {}
+                      'f:name': {}
+                      'f:valueFrom':
+                        .: {}
+                        'f:secretKeyRef': {}
+                  'f:terminationMessagePath': {}
+                  'f:imagePullPolicy': {}
+                  'f:ports':
+                    .: {}
+                    'k:{"containerPort":8000,"protocol":"TCP"}':
+                      .: {}
+                      'f:containerPort': {}
+                      'f:protocol': {}
+                  'f:name': {}
+              'f:dnsPolicy': {}
+              'f:restartPolicy': {}
+              'f:schedulerName': {}
+              'f:securityContext': {}
+              'f:terminationGracePeriodSeconds': {}
+    - manager: kube-controller-manager
+      operation: Update
+      apiVersion: apps/v1
+      time: '2026-09-24T07:53:22Z'
+      fieldsType: FieldsV1
+      fieldsV1:
+        'f:metadata':
+          'f:annotations':
+            .: {}
+            'f:deployment.kubernetes.io/revision': {}
+        'f:status':
+          'f:availableReplicas': {}
+          'f:conditions':
+            .: {}
+            'k:{"type":"Available"}':
+              .: {}
+              'f:lastTransitionTime': {}
+              'f:lastUpdateTime': {}
+              'f:message': {}
+              'f:reason': {}
+              'f:status': {}
+              'f:type': {}
+            'k:{"type":"Progressing"}':
+              .: {}
+              'f:lastTransitionTime': {}
+              'f:lastUpdateTime': {}
+              'f:message': {}
+              'f:reason': {}
+              'f:status': {}
+              'f:type': {}
+          'f:observedGeneration': {}
+          'f:readyReplicas': {}
+          'f:replicas': {}
+          'f:updatedReplicas': {}
+      subresource: status
+  namespace: raissaundita24-dev
   labels:
     app: my-container
 spec:
   replicas: 5
   selector:
     matchLabels:
-      app: my-container
+      bootcamp: its-mlpt
   template:
     metadata:
       labels:
-        app: my-container
+        bootcamp: its-mlpt
     spec:
       containers:
         - name: my-container
-          image: default-route-openshift-image-registry.apps.rm3.7wse.p1.openshiftapps.com/tobias-aditya-dev/my-image:1.0.0
-          imagePullPolicy: Always
+          image: 'default-route-openshift-image-registry.apps.rm1.0a51.p1.openshiftapps.com/raissaundita24-dev/transaction:v.1'
           ports:
             - containerPort: 8000
               protocol: TCP
+          env:
+            - name: MONGO_USER
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-secret
+                  key: MONGO_USER
+            - name: MONGO_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-secret
+                  key: MONGO_PASSWORD
+            - name: MONGO_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-secret
+                  key: MONGO_HOST
+            - name: MONGO_DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: mongo-configmaps
+                  key: MONGO_DB_NAME
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          imagePullPolicy: Always
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+      securityContext: {}
+      schedulerName: default-scheduler
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 25%
+  revisionHistoryLimit: 10
+  progressDeadlineSeconds: 600
+status:
+  observedGeneration: 20
+  replicas: 5
+  updatedReplicas: 5
+  readyReplicas: 5
+  availableReplicas: 5
+  conditions:
+    - type: Progressing
+      status: 'True'
+      lastUpdateTime: '2026-09-22T08:48:38Z'
+      lastTransitionTime: '2026-09-22T04:21:41Z'
+      reason: NewReplicaSetAvailable
+      message: ReplicaSet "my-container-d7cd4fdfc" has successfully progressed.
+    - type: Available
+      status: 'True'
+      lastUpdateTime: '2026-09-24T02:20:40Z'
+      lastTransitionTime: '2026-09-24T02:20:40Z'
+      reason: MinimumReplicasAvailable
+      message: Deployment has minimum availability.
