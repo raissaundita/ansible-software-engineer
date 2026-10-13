@@ -136,12 +136,6 @@ The profiling service follows the same steps with `manifest/profildeploy.yaml` a
 - Every application needs its own pod labels, otherwise a Service can send traffic to the wrong pods
 - A fixed-nominal spending threshold gave the same label every month for Ferdi's data, which led to the switch to savings rate
 
-## Status
-
-- Transaction Service and Profiling Service: **done**, deployed on OpenShift
-- Ansible VM setup playbook: **done**
-- Self-hosted MongoDB on the VM to replace Atlas: **in progress**. MongoDB 7.0 is running as a Podman container on the VM; connecting it to the OpenShift services is not finished yet
-
 ## Author
 
 Raissa Undita Estiningtyas, Mathematics, Institut Teknologi Sepuluh Nopember (ITS)
