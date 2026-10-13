@@ -59,6 +59,23 @@ Both services read database credentials from an OpenShift **Secret** (`MONGO_USE
 - **Extra insights:** comparison with last month, average spending per day, last recorded transaction date, and the top 3 largest transactions this month
 - Alert messages vary per status so the output does not feel repetitive
 
+## API Preview
+
+Screenshots of the Swagger UI (`/images`) from the deployed services, using sample data.
+
+### Transaction Service endpoints
+<img src="images/transaction-endpoints.png" alt="Swagger UI listing the transaction service endpoints" width="800">
+
+### Spending behavior (`GET /transaction/summary/behavior`)
+March 2026 sample: spending is about 2.5x income, so the savings rate is -149.9% and the label is **Reckless Spender**.
+
+<img src="images/behavior-summary.png" alt="Response of the behavior summary endpoint showing savings rate and label" width="800">
+
+### Spending alert (`GET /profiling/alert`)
+February 2026 sample: spending is 96.2% of the average of previous months, so the status is **waspada**.
+
+<img src="images/profiling-alert.png" alt="Response of the profiling alert endpoint showing status, baseline, and largest transactions" width="800">
+
 ## Ansible Automation
 
 `ansible/setup-vm-dev.yaml` prepares a Fedora VM and is launched from an AAP Job Template, with values passed as extra variables.
